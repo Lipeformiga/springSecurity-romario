@@ -27,14 +27,13 @@ public class AutenticacaoController {
                         HttpServletRequest request,
                         HttpServletResponse response) {
 
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                loginDTO.username(), loginDTO.password()
-        );
-        Authentication auth = authenticationManager.authenticate(token);
+        Authentication auth = new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password());
+
+        auth = authenticationManager.authenticate(auth);
 
         if (auth.isAuthenticated()) {
             SecurityContext secContext = SecurityContextHolder
-                    .createEmptyContext();
+                    .getContext();
 
             secContext.setAuthentication(auth);
             secRepository.saveContext(secContext, request, response);
@@ -43,8 +42,18 @@ public class AutenticacaoController {
             response.setStatus(401);
         }
     }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.OK)
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        secRepository.saveContext(SecurityContextHolder.createEmptyContext(), request, response);
+    }
+
+    @GetMapping("/user")
+    public Object usuarioLogado() {
+        return SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+    }
 }
-
-
-
-
